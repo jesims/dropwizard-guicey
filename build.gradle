@@ -10,6 +10,7 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.36.0'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'ru.vyarus.mkdocs' version '2.0.1'
+    id 'maven-publish'
 }
 
 sourceCompatibility = 1.8
@@ -195,4 +196,28 @@ task updateGithubPom(type: Copy, group: 'other') {
     from(generatePomFileForMavenPublication)
     into '.github'
     rename 'pom-default.xml', 'pom.xml'
+}
+
+repositories {
+    maven {
+        url "s3://us1.artifacts.jesi.io"
+        credentials(AwsCredentials) {
+            accessKey System.getenv("AWS_ACCESS_KEY_ID")
+            secretKey System.getenv("AWS_SECRET_ACCESS_KEY")
+        }
+    }
+}
+
+apply plugin: 'maven-publish'
+
+publishing {
+    repositories {
+        maven {
+            url "s3://us1.artifacts.jesi.io/releases"
+            credentials(AwsCredentials) {
+                accessKey "${System.getenv('AWS_ACCESS_KEY_ID')}"
+                secretKey "${System.getenv('AWS_SECRET_ACCESS_KEY')}"
+            }
+        }
+    }
 }
